@@ -17,10 +17,16 @@ Then alter your homeserver configuration, adding to your `modules` configuration
 modules:
   - module: threepid_checker.ThreepidChecker
     config:
-      # The URL to send requests to when checking if a 3PID can be registered. See below
-      # for more information.
+      # The URL to send requests to when checking if a 3PID can be associated to an account.
+      # See below for more information.
       # Required.
       url: https://foo/bar
+
+      # If true, the module will only send requests to the URL as part of registering a
+      # new user. This means no request will be sent to the URL when associating a 3PID with
+      # an already existing account.
+      # Optional, defaults to false.
+      only_check_at_registration: false
 ```
 
 The configured URL will be hit by a `GET` HTTP request, with 2 parameters to qualify the 3PID:
@@ -30,19 +36,19 @@ The configured URL will be hit by a `GET` HTTP request, with 2 parameters to qua
 
 The server at that URL is expected to respond with a JSON object that contains the following keys:
 
-* `hs` (string): Required. The name of the homeserver the 3PID is allowed to be registered
+* `hs` (string): Required. The name of the homeserver the 3PID is allowed to be associated
                  on. The 3PID will be denied if this is absent from the response's body.
-* `requires_invite` (bool): Optional. Whether an invite is required for this 3PID to register 
-                            on this homeserver. What qualifies as an invite is left to the
+* `requires_invite` (bool): Optional. Whether an invite is required for this 3PID to be associated 
+                            with an account on this homeserver. What qualifies as an invite is left to the
                             server serving the configured URL to define. Defaults to `false`.
 * `invited` (bool): Optional. Whether there is a pending invite for the 3PID. Defaults to `false`.
 
-The module will deny the 3PID's registration based on the response if:
+The module will deny the 3PID's association based on the response if:
 
 * `hs` does not match the homeserver's configured server name, or is missing, or
 * `requires_invite` is `true` and `invited` is `false` or missing
 
-The 3PID will be allowed to register otherwise.
+The 3PID will be allowed to be associated with a local user otherwise.
 
 
 ## Development

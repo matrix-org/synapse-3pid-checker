@@ -59,33 +59,60 @@ class ThreepidCheckerTestCase(aiounittest.AsyncTestCase):
         """
         await self._test_check_if_allowed(Addresses.INVITED, True)
 
-    async def _test_check_if_allowed(self, address: str, expected_result: bool) -> None:
+    async def test_not_invited_registration(self) -> None:
+        """Tests that a 3PID that shouldn't be allowed to be associated with a local
+        account is only correctly blocked during user registration if the
+        "only_check_at_registration" configuration flag is set to true.
+        """
+        # While registering.
+        await self._test_check_if_allowed(
+            address=Addresses.NOT_INVITED,
+            expected_result=False,
+            only_registration=True,
+            registration=True,
+        )
+        # Not in a user registration.
+        await self._test_check_if_allowed(
+            address=Addresses.NOT_INVITED,
+            expected_result=True,
+            only_registration=True,
+            registration=False,
+        )
+
+    async def _test_check_if_allowed(
+        self,
+        address: str,
+        expected_result: bool,
+        only_registration: bool = False,
+        registration: bool = False,
+    ) -> None:
         """Calls the "check_if_allowed" callback on a new instance of the module and
         compare its return value with the expected result.
         """
-        module = create_module()
-        res = await module.check_if_allowed("email", address)
+        config = {"only_check_at_registration": only_registration}
+        module = create_module(config)
+        res = await module.check_if_allowed("email", address, registration)
         self.assertEqual(res, expected_result)
 
     async def test_config_missing_url(self) -> None:
         """Tests that the module raises an error if configured without a URL."""
         with self.assertRaises(ConfigError):
-            create_module(url=None)
+            create_module({"url": None})
 
     async def test_config_url_bad_type(self) -> None:
         """Tests that the module raises an error if configured with a URL that's not a
         string.
         """
         with self.assertRaises(ConfigError):
-            create_module(url=1)  # type: ignore[arg-type]
+            create_module({"url": 1})  # type: ignore[arg-type]
 
     async def test_config_url_not_http(self) -> None:
         """Tests that the module raises an error if configured with a URL that's not an
         HTTP(S) URL.
         """
         with self.assertRaises(ConfigError):
-            create_module(url="ftp://foo")
+            create_module({"url": "ftp://foo"})
 
     async def test_config_good_url(self) -> None:
         """Tests that the module can be initialised with an HTTP(S) URL."""
-        create_module(url="http://foo")
+        create_module({"url": "http://foo"})

@@ -8,6 +8,7 @@ from threepid_checker import ThreepidChecker
 
 class Addresses:
     """Known addresses for tests."""
+
     NO_HS = "nohs@test"
     WRONG_HS = "wronghs@test"
     REQUIRES_INVITE_MISSING = "rimissing@test"
@@ -51,17 +52,14 @@ class MockHttpClient:
         raise RuntimeError("Unknown address provided in test")
 
 
-def create_module(url: Optional[str] = "http://foo") -> ThreepidChecker:
+def create_module(config_override: Dict[str, Any] = {}) -> ThreepidChecker:
     # Create a mock based on the ModuleApi spec, but override some mocked functions
     # because some capabilities are needed for running the tests.
     module_api = Mock(spec=ModuleApi)
     module_api.http_client = MockHttpClient()
     module_api.server_name = "test"
 
-    raw_config = {}
-    if url is not None:
-        raw_config["url"] = url
-
-    config = ThreepidChecker.parse_config(raw_config)
+    config_override.setdefault("url", "http://foo")
+    config = ThreepidChecker.parse_config(config_override)
 
     return ThreepidChecker(config, module_api)

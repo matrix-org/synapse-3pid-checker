@@ -22,6 +22,7 @@ from synapse.module_api.errors import ConfigError
 @attr.s(auto_attribs=True, frozen=True)
 class ThreepidCheckerConfig:
     url: str
+    only_check_at_registration: bool = False
 
 
 class ThreepidChecker:
@@ -51,9 +52,11 @@ class ThreepidChecker:
 
         return ThreepidCheckerConfig(**config)
 
-    async def check_if_allowed(self, medium: str, address: str) -> bool:
+    async def check_if_allowed(
+        self, medium: str, address: str, registration: bool
+    ) -> bool:
         """Sends an HTTP(s) request to the configured URL and check if the data it
-        responds with allows the given 3PID to register.
+        responds with allows the given 3PID to be associated with a local account.
 
         Note that this function does not check if an error is raised by the HTTP client.
         The idea is that Synapse will catch that error, log it and fail the user's
@@ -62,10 +65,15 @@ class ThreepidChecker:
         Args:
             medium: The 3PID's medium.
             address: The 3PID's address.
+            registration: Whether the check is happening while registering a new user.
 
         Returns:
             Whether the 3PID can register.
         """
+        if registration is False and self._config.only_check_at_registration is True:
+            # TODO: test
+            return True
+
         data = await self._http_client.get_json(
             self._config.url,
             {"medium": medium, "address": address},
@@ -75,7 +83,7 @@ class ThreepidChecker:
         if "hs" not in data:
             return False
 
-        # Check if this user is intended to register for this homeserver
+        # Check if this 3PID can be associated on this homeserver
         if data.get("hs") != self._api.server_name:
             return False
 
