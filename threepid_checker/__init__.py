@@ -33,6 +33,10 @@ class ThreepidChecker:
 
         self._http_client = api.http_client
 
+        self._api.register_password_auth_provider_callbacks(
+            is_3pid_allowed=self.check_if_allowed,
+        )
+
     @staticmethod
     def parse_config(config: Dict[str, Any]) -> ThreepidCheckerConfig:
         """Checks that required config options are in the correct format and parses them
