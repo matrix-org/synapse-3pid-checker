@@ -104,7 +104,7 @@ class ThreepidCheckerTestCase(aiounittest.AsyncTestCase):
         string.
         """
         with self.assertRaises(ConfigError):
-            create_module({"url": 1})  # type: ignore[arg-type]
+            create_module({"url": 1})
 
     async def test_config_url_not_http(self) -> None:
         """Tests that the module raises an error if configured with a URL that's not an
