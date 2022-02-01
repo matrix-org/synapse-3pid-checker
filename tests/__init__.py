@@ -1,4 +1,4 @@
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from mock import Mock
 from synapse.module_api import ModuleApi
