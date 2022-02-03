@@ -89,7 +89,10 @@ class ThreepidCheckerTestCase(aiounittest.AsyncTestCase):
         """Calls the "check_if_allowed" callback on a new instance of the module and
         compare its return value with the expected result.
         """
-        config = {"only_check_at_registration": only_registration}
+        config = {
+            "url": "http://foo",
+            "only_check_at_registration": only_registration,
+        }
         module = create_module(config)
         res = await module.check_if_allowed("email", address, registration)
         self.assertEqual(res, expected_result)
@@ -97,7 +100,7 @@ class ThreepidCheckerTestCase(aiounittest.AsyncTestCase):
     async def test_config_missing_url(self) -> None:
         """Tests that the module raises an error if configured without a URL."""
         with self.assertRaises(ConfigError):
-            create_module({"url": None})
+            create_module({})
 
     async def test_config_url_bad_type(self) -> None:
         """Tests that the module raises an error if configured with a URL that's not a

@@ -51,7 +51,13 @@ class ThreepidChecker:
         if "url" not in config:
             raise ConfigError('"url" is a required configuration parameter')
 
-        if not isinstance(config["url"], str) or not config["url"].startswith("http"):
+        if (
+            not isinstance(config["url"], str)
+            or (
+                not config["url"].startswith("http:")
+                and not config["url"].startswith("https:")
+            )
+        ):
             raise ConfigError('"url" needs to be an HTTP(S) URL')
 
         return ThreepidCheckerConfig(**config)
@@ -75,7 +81,6 @@ class ThreepidChecker:
             Whether the 3PID can register.
         """
         if registration is False and self._config.only_check_at_registration is True:
-            # TODO: test
             return True
 
         data = await self._http_client.get_json(

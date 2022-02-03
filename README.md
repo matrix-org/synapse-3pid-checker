@@ -29,7 +29,7 @@ modules:
       only_check_at_registration: false
 ```
 
-The configured URL will be hit by a `GET` HTTP request, with 2 parameters to qualify the 3PID:
+The configured URL will be hit by a `GET` HTTP request. Note that this is _not_ subject to, with 2 parameters to qualify the 3PID:
 
 * `medium`: The 3PID's medium (`email` for an email address, `msisdn` for a phone number)
 * `address`: The 3PID's address
@@ -37,7 +37,8 @@ The configured URL will be hit by a `GET` HTTP request, with 2 parameters to qua
 The server at that URL is expected to respond with a JSON object that contains the following keys:
 
 * `hs` (string): Required. The name of the homeserver the 3PID is allowed to be associated
-                 on. The 3PID will be denied if this is absent from the response's body.
+                 on. This is the `server_name` variable in Synapse's configuration file. 
+                 The 3PID will be denied if this is absent from the response's body.
 * `requires_invite` (bool): Optional. Whether an invite is required for this 3PID to be associated 
                             with an account on this homeserver. What qualifies as an invite is left to the
                             server serving the configured URL to define. Defaults to `false`.

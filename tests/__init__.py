@@ -59,7 +59,6 @@ def create_module(config_override: Dict[str, Any] = {}) -> ThreepidChecker:
     module_api.http_client = MockHttpClient()
     module_api.server_name = "test"
 
-    config_override.setdefault("url", "http://foo")
     config = ThreepidChecker.parse_config(config_override)
 
     return ThreepidChecker(config, module_api)
