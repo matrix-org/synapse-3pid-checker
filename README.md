@@ -29,7 +29,7 @@ modules:
       only_check_at_registration: false
 ```
 
-The configured URL will be hit by a `GET` HTTP request. Note that this is _not_ subject to, with 2 parameters to qualify the 3PID:
+The configured URL will be hit by a `GET` HTTP request. Note that this is _not_ subject to Synapse's IP blacklist, with 2 parameters to qualify the 3PID:
 
 * `medium`: The 3PID's medium (`email` for an email address, `msisdn` for a phone number)
 * `address`: The 3PID's address
