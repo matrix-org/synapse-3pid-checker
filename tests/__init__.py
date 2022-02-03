@@ -1,6 +1,6 @@
 from typing import Any, Dict
+from unittest.mock import Mock
 
-from mock import Mock
 from synapse.module_api import ModuleApi
 
 from threepid_checker import ThreepidChecker
