@@ -16,11 +16,13 @@ from typing import Any, Dict
 
 import attr
 from synapse.module_api import ModuleApi
+from synapse.module_api.errors import ConfigError
 
 
 @attr.s(auto_attribs=True, frozen=True)
 class ThreepidCheckerConfig:
-    pass
+    url: str
+    only_check_at_registration: bool = False
 
 
 class ThreepidChecker:
@@ -29,18 +31,73 @@ class ThreepidChecker:
         self._api = api
         self._config = config
 
+        self._http_client = api.http_client
+
+        self._api.register_password_auth_provider_callbacks(
+            is_3pid_allowed=self.check_if_allowed,
+        )
+
     @staticmethod
     def parse_config(config: Dict[str, Any]) -> ThreepidCheckerConfig:
-        # Parse the module's configuration here.
-        # If there is an issue with the configuration, raise a
-        # synapse.module_api.errors.ConfigError.
-        #
-        # Example:
-        #
-        #     some_option = config.get("some_option")
-        #     if some_option is None:
-        #          raise ConfigError("Missing option 'some_option'")
-        #      if not isinstance(some_option, str):
-        #          raise ConfigError("Config option 'some_option' must be a string")
-        #
-        return ThreepidCheckerConfig()
+        """Checks that required config options are in the correct format and parses them
+        into a ThreepidCheckerConfig.
+
+        Args:
+            config: The raw configuration dict.
+
+        Returns:
+            The parsed configuration.
+        """
+        if "url" not in config:
+            raise ConfigError('"url" is a required configuration parameter')
+
+        if (
+            not isinstance(config["url"], str)
+            or (
+                not config["url"].startswith("http:")
+                and not config["url"].startswith("https:")
+            )
+        ):
+            raise ConfigError('"url" needs to be an HTTP(S) URL')
+
+        return ThreepidCheckerConfig(**config)
+
+    async def check_if_allowed(
+        self, medium: str, address: str, registration: bool
+    ) -> bool:
+        """Sends an HTTP(s) request to the configured URL and check if the data it
+        responds with allows the given 3PID to be associated with a local account.
+
+        Note that this function does not check if an error is raised by the HTTP client.
+        The idea is that Synapse will catch that error, log it and fail the user's
+        request, which is what we want anyway.
+
+        Args:
+            medium: The 3PID's medium.
+            address: The 3PID's address.
+            registration: Whether the check is happening while registering a new user.
+
+        Returns:
+            Whether the 3PID can register.
+        """
+        if registration is False and self._config.only_check_at_registration is True:
+            return True
+
+        data = await self._http_client.get_json(
+            self._config.url,
+            {"medium": medium, "address": address},
+        )
+
+        # Check for invalid response
+        if "hs" not in data:
+            return False
+
+        # Check if this 3PID can be associated on this homeserver
+        if data.get("hs") != self._api.server_name:
+            return False
+
+        if data.get("requires_invite", False) and not data.get("invited", False):
+            # Requires an invite but hasn't been invited
+            return False
+
+        return True
