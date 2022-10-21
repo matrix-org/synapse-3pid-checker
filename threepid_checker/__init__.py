@@ -51,12 +51,9 @@ class ThreepidChecker:
         if "url" not in config:
             raise ConfigError('"url" is a required configuration parameter')
 
-        if (
-            not isinstance(config["url"], str)
-            or (
-                not config["url"].startswith("http:")
-                and not config["url"].startswith("https:")
-            )
+        if not isinstance(config["url"], str) or (
+            not config["url"].startswith("http:")
+            and not config["url"].startswith("https:")
         ):
             raise ConfigError('"url" needs to be an HTTP(S) URL')
 
