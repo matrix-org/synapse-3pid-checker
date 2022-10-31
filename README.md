@@ -7,7 +7,7 @@ registered on the local homeserver by querying a remote backend.
 
 From the virtual environment that you use for Synapse, install this module with:
 ```shell
-pip install threepid-checker==1.0.1
+pip install threepid-checker
 ```
 (If you run into issues, you may need to upgrade `pip` first, e.g. by running
 `pip install --upgrade pip`)
